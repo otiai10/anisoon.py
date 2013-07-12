@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Using Template</title>
+</head>
+<body>
+    <ul>
+        <li>hoge</li>
+    </ul>
+
+    <h1>あにそーん</h1>
+    <div id="animes">
+    </script>
+    <script type="text/template" id="animes">
+    </script>
+    <script type="text/template" id="anime-template">
+        <%- Title %>
+    </script>
+</body>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://underscorejs.org/underscore-min.js"></script>
+<script type="text/javascript" src="http://otiai10.com/json2.js"></script>
+<script type="text/javascript" src="http://backbonejs.org/backbone-min.js"></script>
+<script type="text/javascript" charset="utf-8" id="preload">
+(function(){
+    // ただのlist
+    var animes = {{ list }};
+    var AnimeView = Backbone.View.extend({
+        tagName  : 'li',
+        template : _.template($('#anime-template').html()),
+        render   : function(){
+            //var tpl = this.template(this.model.toJson());
+            var tpl = this.template(this.model.attributes);
+            this.$el.html(tpl);
+            return this;
+        },
+        events : {
+            'click' : 'diapear',
+        },
+        diapear : function(e){
+            alert('diapear');
+            console.log(e);
+        },
+    });
+    var AnimesView = Backbone.View.extend({
+        tagName : 'ul',
+        render  : function(){
+            this.collection.each(function(_anime){
+                var animeView = new AnimeView({model:_anime});
+                this.$el.append(animeView.render().el);
+            },this);
+            return this;
+        },
+    });
+
+    var __animes = new Backbone.Collection(animes);
+
+    var animesView = new AnimesView({collection : __animes});
+    $('#animes').html(animesView.render().el);
+
+})();
+</script>
+</html>
