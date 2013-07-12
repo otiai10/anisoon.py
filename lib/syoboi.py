@@ -7,7 +7,7 @@ def get_mtitle_list(l):
         for v in l:
             mtitle = extract_mtitle(v[:-2])
             if mtitle is not None:
-                mtitle_list.append(mtitle)
+                mtitle_list.append({'mtitle':mtitle})
     return mtitle_list
 
 def extract_mtitle(s):
