@@ -7,20 +7,30 @@
         html, body {
             height: 100%;
         }
-        div#animes-container {
-            height: 80%;
-            width: 600px;
-            overflow: scroll;
-        }
         i {
             cursor: pointer;
+        }
+        div#content-wrapper {
+            width: 100%;
+            height: 80%;
+        }
+        div#animes-container {
+            height: 100%;
+            width: 600px;
+            overflow: scroll;
         }
     </style>
 </head>
 <body>
-    <h1>あにそーん</h1>
-    <div id="animes-container">
-        <div id="animes">
+    <p>あにそーん</p>
+    <div id="content-wrapper" class="boxy">
+        <div id="player-container">
+            <div id="video">
+            </div>
+        </div>
+        <div id="animes-container">
+            <div id="animes">
+            </div>
         </div>
     </div>
     <script type="text/template" id="anime-template">
@@ -30,7 +40,7 @@
                 <ul>
                 <% for (var i=0;i<music.op.length;i++){ %>
                     <li>
-                        <i><%- music.op[i].mtitle %></i>
+                        <i class="mtitle"><%- music.op[i].mtitle %></i>
                     </li>
                 <% } %>
                 </ul>
@@ -39,7 +49,7 @@
                 <ul>
                 <% for (var i=0;i<music.ed.length;i++){ %>
                     <li>
-                        <i><%- music.ed[i].mtitle %></i>
+                        <i class="mtitle"><%- music.ed[i].mtitle %></i>
                     </li>
                 <% } %>
                 </ul>
@@ -51,22 +61,154 @@
 <script type="text/javascript" src="http://underscorejs.org/underscore-min.js"></script>
 <!--script type="text/javascript" src="http://otiai10.com/json2.js"></script-->
 <script type="text/javascript" src="http://backbonejs.org/backbone-min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 <script type="text/javascript" charset="utf-8" id="preload">
-(function(){
-    var animes = {{ list }};
-    var __anisons = [];
+// see : https://developers.google.com/youtube/js_api_reference?hl=ja#Events
+var __playlist__ = [];
+var __player__;
+var __index__ = 0;
+var __animes__ = {{ list }};
+
+var STATE = {
+  READY    : -1,
+  ENDED    :  0,
+  PLAYING  :  1,
+  STOPED   :  2,
+  BUFFERING:  3,
+  HEADED   :  5,
+}
+
+function __init(){
+    initPlayer();
+    initPlaylist();
+    __index__ = 0;
+}
+
+function playThis(){
+    var m = __playlist__[__index__];
+    if (__playlist__[__index__].video === void 0) {
+        //console.log('今再生しようとしているエントリは、ビデオインフォが無いですね');
+        var query =  __playlist__[__index__].mtitle + ' ' + __playlist__[__index__].atitle;
+        var searcher = new Search('youtube', query);
+        searcher.exec(function(data){
+            __playlist__[__index__].vinfo = data;
+            __play();
+        });
+    }else{
+        //console.log('ビデオインフォがあります');
+        __play();
+    }
+}
+
+// Facade
+function Search(src,query){
+    this.src   =   src;
+    this.query = query;
+    this.searcher;
+    switch(this.src){
+        case 'youtube':
+            this.searcher = new Youtube(query);
+            break;
+        default:
+            this.searcher = new Youtube(query);
+    }
+    this.exec = function(cb){
+        var _srchr = this.searcher;
+        $.get(
+            this.searcher.base_url,
+            this.searcher.options,
+            function(data){
+                cb(_srchr.convert(data));
+            }
+        );
+    }; 
+}
+
+function Youtube(query){
+    this.base_url = 'http://gdata.youtube.com/feeds/api/videos';
+    this.options = {
+        'alt' :      'json',
+        'q'   :       query,
+        'max-results' : '1',
+    };
+    this.res   =    {
+        'vtitle'    : '',
+        'hash'      : '',
+        'permalink' : '',
+        // and more...
+    };
+    this.filter = function(list){
+        return list[0];
+    };
+    this.convert = function(data){
+        var list = data.feed.entry;
+        var _v = this.filter(list);
+        //console.log(_v);
+        this.res.vtitle = _v.title.$t;
+        this.res.hash = _v.id.$t.match(/\/[a-zA-Z0-9_\-]+$/).pop().substring(1);
+        this.res.permalink = _v.link[0].href;
+        return this.res;
+    };
+}
+
+function __play(){
+    __player__.loadVideoById(__playlist__[__index__].vinfo.hash);
+}
+
+function initPlayer(initialID){
+    if(!initialID) initialID = 'QusbhxkanU0';
+    var params = { allowScriptAccess: "always" };
+    var atts   = { id: "player" };
+    swfobject.embedSWF(
+        "http://www.youtube.com/v/" + initialID + "?enablejsapi=1&playerapiid=ytplayer",
+        "video",
+        "460",
+        "320",
+        "8",
+        null,
+        null,
+        params,
+        atts
+    );
+}
+
+function onYouTubePlayerReady(){
+    __player__ = document.getElementById('player');
+    //__player__.addEventListener("onStateChange", "stateDispatcher");
+    //__player__.addEventListener("onError",       "errorHandler");
+    //if(isAutoStartRequired()){
+        playThis();
+    //}
+}
+
+function initPlaylist(){
     var tmp_index = 0;
-    for (var i=0;i<animes.length;i++) {
-        var atitle = animes[i]['Title'];
-        for (var j=0;j<animes[i].music.op.length;j++) {
+    for (var i=0;i<__animes__.length;i++) {
+        var atitle = __animes__[i]['Title'];
+        for (var j=0;j<__animes__[i].music.op.length;j++) {
             tmp_index++;
-            console.log("idx\t", tmp_index, "\t", atitle, '--', animes[i].music.op[j].mtitle);
+            var entry = {
+                'idx'    : tmp_index,
+                'atitle' : atitle,
+                'mtitle' : __animes__[i].music.op[j].mtitle,
+                'type'   : 'opening',
+            }
+            __playlist__.push(entry);
         }
-        for (var j=0;j<animes[i].music.ed.length;j++) {
+        for (var j=0;j<__animes__[i].music.ed.length;j++) {
             tmp_index++;
-            console.log("idx\t", tmp_index, "\t", atitle, '--', animes[i].music.ed[j].mtitle);
+            var entry = {
+                'idx'    : tmp_index,
+                'atitle' : atitle,
+                'mtitle' : __animes__[i].music.ed[j].mtitle,
+                'type'   : 'ending',
+            }
+            __playlist__.push(entry);
         }
     }
+}
+
+(function(){
     var AnimeView = Backbone.View.extend({
         tagName  : 'li',
         template : _.template($('#anime-template').html()),
@@ -74,8 +216,6 @@
             var tpl = this.template(this.model.attributes);
             this.$el.html(tpl);
             return this;
-        },
-        events : {
         },
         diapear : function(e){
             alert('diapear');
@@ -93,11 +233,15 @@
         },
     });
 
-    var __animes = new Backbone.Collection(animes);
+    var animes = new Backbone.Collection(__animes__);
 
-    var animesView = new AnimesView({collection : __animes});
+    var animesView = new AnimesView({collection : animes});
     $('#animes').html(animesView.render().el);
+    $('.mtitle').on('click',function(){
+        alert('hoge');
+    });
 
+    __init();
 })();
 </script>
 </html>
