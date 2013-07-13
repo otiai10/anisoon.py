@@ -6,32 +6,85 @@
     <style>
         html, body {
             height: 100%;
+            min-width: 384px;
         }
         i {
             cursor: pointer;
         }
+        i:hover {
+            text-decoration: underline;
+        }
         div#content-wrapper {
-            width: 100%;
-            height: 80%;
+            position: relative;
+            overflow: auto;
+            display: -webkit-box;
+            width:  100%;
+            height: 120%;
+        }
+        div#right-wrapper {
+            height:100%;
+            overflow: scroll;
         }
         div#animes-container {
             height: 100%;
             width: 600px;
-            overflow: scroll;
+        }
+        div#amazon-widget-container {
+        }
+        div#footer {
+            clear: both;
         }
     </style>
 </head>
 <body>
-    <p>あにそーん</p>
-    <div id="content-wrapper" class="boxy">
-        <div id="player-container">
-            <div id="video">
+    <p>[ <span id="display-mtitle"></span> / <span id="display-atitle"></span> / <span id="display-mtype"></span> ]</p>
+    <div id="content-wrapper">
+        <div id="left-wrapper">
+            <div id="player-container">
+                <div id="video">
+                </div>
             </div>
-        </div>
-        <div id="animes-container">
-            <div id="animes">
+            <div id="controler-container">
+                <p>
+                    <form name="player-options">
+                        <input type="radio" name="repeatType" value="next" checked>オート次曲 <input type="radio" name="repeatType" value="one">1曲リピート
+                        <a class="goNext" href="#">次の曲へ</a>
+                    </form>
+                </p>
             </div>
-        </div>
+            <div id="amazon-widget-container">
+                <SCRIPT charset="utf-8" type="text/javascript" src="http://ws-fe.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2F9ce67d1b-0e9a-4696-b91c-4c3e81308955"> </SCRIPT> <NOSCRIPT><A HREF="http://ws-fe.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2F9ce67d1b-0e9a-4696-b91c-4c3e81308955&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
+            </div>
+        </div><!-- /#left-wrapper -->
+        <div id="right-wrapper">
+            <div id="animes-container">
+                <div id="animes">
+                </div>
+            </div>
+        </div><!-- /#right-wrapper -->
+    </div>
+    <div id="footer">
+        <p>
+            <table><tbody>
+                <tr>
+                    <td>Thanks to</td>
+                    <td><a href="http://cal.syoboi.jp/">しょぼいカレンダー API</a>, <a href="https://developers.google.com/youtube/">YouTube API</a></td>
+                </tr>
+                <tr>
+                    <td>Powered by</td>
+                    <td><a href="https://github.com/breily/juno">Juno</a></td>
+                </tr>
+                <tr>
+                    <td>苦情・バグ・改善</td>
+                    <td><a href="https://github.com/otiai10/anisoon/issues/new">github/otiai10</a></td>
+                </tr>
+                <tr>
+                    <td>お問い合わせ</td>
+                    <td><a href="https://twitter.com/otiai10">twitter/otiai10</a></td>
+                </tr>
+            </tbody></table>
+            <h2>あにそーん</h2>
+        </p>
     </div>
     <script type="text/template" id="anime-template">
         <b><%- Title %></b>
@@ -92,7 +145,6 @@ function playThis(){
         var searcher = new Search('youtube', query);
         searcher.exec(function(data){
             __playlist__[__index__].vinfo = data;
-            console.log(__playlist__[__index__]);
             __play();
         });
     }else{
@@ -142,6 +194,10 @@ function Youtube(query){
         return list[0];
     };
     this.convert = function(data){
+        if (data.feed.entry == void 0) {
+            alert('ちょっと見つからね。次いくわ。');
+            playNext();
+        }
         var list = data.feed.entry;
         var _v = this.filter(list);
         //console.log(_v);
@@ -154,9 +210,8 @@ function Youtube(query){
 
 function __play(){
     __player__.loadVideoById(__playlist__[__index__].vinfo.hash);
-    console.log(__index__);
-    console.log(__playlist__[__index__]);
     updateDisplay();
+    refreshAmazon();
 }
 
 function updateDisplay(){
@@ -176,7 +231,12 @@ function focusThis(){
     });
 }
 function displayTitle(){
-
+    var mtitle = __playlist__[__index__].mtitle;
+    var atitle = __playlist__[__index__].atitle;
+    var mtype  = __playlist__[__index__].type;
+    $('span#display-mtitle').html(mtitle);
+    $('span#display-atitle').html(atitle);
+    $('span#display-mtype').html(mtype);
 }
 
 function initPlayer(initialID){
@@ -208,8 +268,12 @@ function onYouTubePlayerReady(){
 function stateDispatcher(state){
     switch(state){
         case STATE.ENDED:
-            __index__++;
-            playThis();
+            var opt = document.forms['player-options'];
+            if (opt.repeatType[0].checked) {
+                playNext();
+            } else {
+                playThis();
+            }
             break;
     }
 }
@@ -217,9 +281,22 @@ function errorHandler(err){
     // TODO : imple
 }
 
+function playNext(){
+    __index__++;
+    if (__playlist__[__index__] == void 0) {
+        __index__ = 0;
+    }
+    playThis();
+}
+
+function playDirect(idx){
+    __index__ = idx;
+    playThis();
+}
+
 function initPlaylist(){
     var tmp_index = 0;
-    for (var i=0;i<__animes__.length;i++) {
+    for (var i = 0; i < __animes__.length; i++ ) {
         var atitle = __animes__[i]['Title'];
         for (var j=0;j<__animes__[i].music.op.length;j++) {
             var entry = {
@@ -246,6 +323,14 @@ function initPlaylist(){
     }
 }
 
+function refreshAmazon(){
+  var amzn_search_textfield = document.getElementById('amzn_search_textfield');
+  amzn_search_textfield.value = __playlist__[__index__].atitle;
+  var frm = document.getElementById('searchBoxForm');
+  window.nextCallBack["JP"][8002][0].goOnClick("JP",0);
+  return false;
+}
+
 (function(){
 
     __init();
@@ -257,10 +342,6 @@ function initPlaylist(){
             var tpl = this.template(this.model.attributes);
             this.$el.html(tpl);
             return this;
-        },
-        diapear : function(e){
-            alert('diapear');
-            console.log(e);
         },
     });
     var AnimesView = Backbone.View.extend({
@@ -279,9 +360,13 @@ function initPlaylist(){
     var animesView = new AnimesView({collection : animes});
     $('#animes').html(animesView.render().el);
     $('.mtitle').on('click',function(){
-        alert('hoge');
+        var idx = parseInt(this.getAttribute('id').replace('idx',''));
+        playDirect(idx);
     });
 
+    $('.goNext').on('click',function(){
+        playNext();
+    });
 })();
 </script>
 </html>
