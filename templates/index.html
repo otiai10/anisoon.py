@@ -223,6 +223,12 @@ function updateDisplay(){
     focusThis();
     displayTitle();
     changeTitleTag();
+    scrollAnimeList();
+}
+function scrollAnimeList(){
+    var already_scrolled = $('#animes-container').scrollTop();
+    var target_absolute_pos = $('#idx' + __index__).position();
+    $('#animes-container').scrollTop(already_scrolled + target_absolute_pos.top - 100);
 }
 function focusThis(){
     // refresh
