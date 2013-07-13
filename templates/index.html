@@ -242,7 +242,8 @@ function displayTitle(){
 }
 function changeTitleTag(){
     var atitle = __playlist__[__index__].atitle;
-    $('title').html(atitle);
+    var mtype  = __playlist__[__index__].type;
+    $('title').html(atitle + '/' + mtype.toUpperCase());
 }
 
 function initPlayer(initialID){
