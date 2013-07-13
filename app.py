@@ -12,7 +12,11 @@ def index(web):
     return template('index.html', { 'list': json.dumps(anime_list) })
 
 @route('/favicon.ico')
-def undefined(web):
+def favicon(web):
     return 'Action Undefined...'
+
+@route('/:anypath')
+def undefined(web, anypath):
+    return '(☝ ՞ਊ ՞)☝ｳｪｰｲ<br><a href="/">HOME</a>'
 
 run()

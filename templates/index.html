@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="description" content="今期のアニソン聞き流し">
     <title>あにそーん</title>
     <style>
         html, body {
@@ -217,6 +218,7 @@ function __play(){
 function updateDisplay(){
     focusThis();
     displayTitle();
+    changeTitleTag();
 }
 function focusThis(){
     // refresh
@@ -237,6 +239,10 @@ function displayTitle(){
     $('span#display-mtitle').html(mtitle);
     $('span#display-atitle').html(atitle);
     $('span#display-mtype').html(mtype);
+}
+function changeTitleTag(){
+    var atitle = __playlist__[__index__].atitle;
+    $('title').html(atitle);
 }
 
 function initPlayer(initialID){
