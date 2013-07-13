@@ -31,6 +31,18 @@ case $1 in
     ps aux | grep python | grep $PWD/app.py | grep -v grep | awk '{print $2}' | xargs kill -9
     sleep 1s
     break;;
+  "restart" )
+    ps aux | grep python | grep $PWD/app.py | grep -v grep | awk '{print $2}' | xargs kill -9
+    sleep 1s
+    if [ $# -lt 2 ]; then
+      python -B $PWD/app.py
+    elif [ "$2" = "d" ]; then
+      nohup python -B $PWD/app.py >> $log_path &
+    else
+      print_help
+    fi
+    sleep 1s
+    break;;
   "state" ) ps aux | grep $PWD | grep -v grep
     break;;
   "help" )

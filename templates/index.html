@@ -19,21 +19,22 @@
             position: relative;
             overflow: auto;
             display: -webkit-box;
-            width:  100%;
             height: 120%;
+            width:  100%;
         }
         div#right-wrapper {
-            height:100%;
-            overflow: scroll;
+            height: 100%;
         }
         div#animes-container {
-            height: 100%;
+            height:70%;
             width: 600px;
+            overflow: scroll;
         }
         div#amazon-widget-container {
         }
         div#footer {
             clear: both;
+            font-size: 0.8em;
         }
     </style>
 </head>
@@ -54,7 +55,7 @@
                 </p>
             </div>
             <div id="amazon-widget-container">
-                <SCRIPT charset="utf-8" type="text/javascript" src="http://ws-fe.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2F9ce67d1b-0e9a-4696-b91c-4c3e81308955"> </SCRIPT> <NOSCRIPT><A HREF="http://ws-fe.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2F9ce67d1b-0e9a-4696-b91c-4c3e81308955&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
+                <SCRIPT charset="utf-8" type="text/javascript" src="http://ws-fe.amazon-adsystem.com/widgets/q?rt=tf_sw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2Fd9a8c53f-3701-4195-bde0-65552e62b6b7"> </SCRIPT> <NOSCRIPT><A HREF="http://ws-fe.amazon-adsystem.com/widgets/q?rt=tf_sw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fotiai10-22%2F8002%2Fd9a8c53f-3701-4195-bde0-65552e62b6b7&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
             </div>
         </div><!-- /#left-wrapper -->
         <div id="right-wrapper">
@@ -62,6 +63,9 @@
                 <div id="animes">
                 </div>
             </div>
+            <ul>
+              <li><span id="from-date">{{ date }}</span>から今までのアレのような気がするが、違うような気もする</li>
+            </ul>
         </div><!-- /#right-wrapper -->
     </div>
     <div id="footer">
@@ -243,7 +247,7 @@ function displayTitle(){
 function changeTitleTag(){
     var atitle = __playlist__[__index__].atitle;
     var mtype  = __playlist__[__index__].type;
-    $('title').html(atitle + '/' + mtype.toUpperCase());
+    $('title').html(atitle + '/' + mtype);
 }
 
 function initPlayer(initialID){

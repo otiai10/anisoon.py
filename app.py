@@ -6,10 +6,10 @@ import json
 
 @route('/')
 def index(web):
-    three_days_ago = date.today() - timedelta(3)
-    print '%s-%s-%s' % (three_days_ago.year, three_days_ago.month, three_days_ago.day)
-    anime_list = lib.syoboi.search('2013-06-30')
-    return template('index.html', { 'list': json.dumps(anime_list) })
+    month_ago = date.today() - timedelta(30)
+    from_date = '%s-%s-%s' % (month_ago.year, month_ago.month, month_ago.day)
+    anime_list = lib.syoboi.search(from_date)
+    return template('index.html', { 'list': json.dumps(anime_list), 'date':from_date })
 
 @route('/favicon.ico')
 def favicon(web):
