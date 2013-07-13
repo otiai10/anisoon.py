@@ -19,9 +19,9 @@ log_path='log/'$cur_date'.log'
 case $1 in
   "start" )
     if [ $# -lt 2 ]; then
-      python -B $PWD/app.py
+      python $PWD/app.py
     elif [ "$2" = "d" ]; then
-      nohup python -B $PWD/app.py >> $log_path &
+      nohup python $PWD/app.py >> $log_path &
     else
       print_help
     fi
@@ -35,9 +35,9 @@ case $1 in
     ps aux | grep python | grep $PWD/app.py | grep -v grep | awk '{print $2}' | xargs kill -9
     sleep 1s
     if [ $# -lt 2 ]; then
-      python -B $PWD/app.py
+      python $PWD/app.py
     elif [ "$2" = "d" ]; then
-      nohup python -B $PWD/app.py >> $log_path &
+      nohup python $PWD/app.py >> $log_path &
     else
       print_help
     fi
