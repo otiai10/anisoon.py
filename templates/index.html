@@ -40,7 +40,7 @@
                 <ul>
                 <% for (var i=0;i<music.op.length;i++){ %>
                     <li>
-                        <i class="mtitle"><%- music.op[i].mtitle %></i>
+                        <i id="idx<%- music.op[i].minfo.idx %>" class="mtitle"><%- music.op[i].minfo.mtitle %></i>
                     </li>
                 <% } %>
                 </ul>
@@ -49,7 +49,7 @@
                 <ul>
                 <% for (var i=0;i<music.ed.length;i++){ %>
                     <li>
-                        <i class="mtitle"><%- music.ed[i].mtitle %></i>
+                        <i id="idx<%- music.ed[i].minfo.idx %>"class="mtitle"><%- music.ed[i].minfo.mtitle %></i>
                     </li>
                 <% } %>
                 </ul>
@@ -92,6 +92,7 @@ function playThis(){
         var searcher = new Search('youtube', query);
         searcher.exec(function(data){
             __playlist__[__index__].vinfo = data;
+            console.log(__playlist__[__index__]);
             __play();
         });
     }else{
@@ -153,6 +154,29 @@ function Youtube(query){
 
 function __play(){
     __player__.loadVideoById(__playlist__[__index__].vinfo.hash);
+    console.log(__index__);
+    console.log(__playlist__[__index__]);
+    updateDisplay();
+}
+
+function updateDisplay(){
+    focusThis();
+    displayTitle();
+}
+function focusThis(){
+    // refresh
+    $('.mtitle').css({
+        color:      'black',
+        fontWeight:'normal',
+    });
+    // focus
+    $('#idx' + __index__).css({
+        color:       'red',
+        fontWeight: 'bold',
+    });
+}
+function displayTitle(){
+
 }
 
 function initPlayer(initialID){
@@ -174,11 +198,23 @@ function initPlayer(initialID){
 
 function onYouTubePlayerReady(){
     __player__ = document.getElementById('player');
-    //__player__.addEventListener("onStateChange", "stateDispatcher");
-    //__player__.addEventListener("onError",       "errorHandler");
+    __player__.addEventListener("onStateChange", "stateDispatcher");
+    __player__.addEventListener("onError",       "errorHandler");
     //if(isAutoStartRequired()){
         playThis();
     //}
+}
+
+function stateDispatcher(state){
+    switch(state){
+        case STATE.ENDED:
+            __index__++;
+            playThis();
+            break;
+    }
+}
+function errorHandler(err){
+    // TODO : imple
 }
 
 function initPlaylist(){
@@ -186,29 +222,34 @@ function initPlaylist(){
     for (var i=0;i<__animes__.length;i++) {
         var atitle = __animes__[i]['Title'];
         for (var j=0;j<__animes__[i].music.op.length;j++) {
-            tmp_index++;
             var entry = {
                 'idx'    : tmp_index,
                 'atitle' : atitle,
                 'mtitle' : __animes__[i].music.op[j].mtitle,
                 'type'   : 'opening',
             }
+            __animes__[i].music.op[j].minfo = entry;
             __playlist__.push(entry);
+            tmp_index++;
         }
         for (var j=0;j<__animes__[i].music.ed.length;j++) {
-            tmp_index++;
             var entry = {
                 'idx'    : tmp_index,
                 'atitle' : atitle,
                 'mtitle' : __animes__[i].music.ed[j].mtitle,
                 'type'   : 'ending',
             }
+            __animes__[i].music.ed[j].minfo = entry;
             __playlist__.push(entry);
+            tmp_index++;
         }
     }
 }
 
 (function(){
+
+    __init();
+
     var AnimeView = Backbone.View.extend({
         tagName  : 'li',
         template : _.template($('#anime-template').html()),
@@ -241,7 +282,6 @@ function initPlaylist(){
         alert('hoge');
     });
 
-    __init();
 })();
 </script>
 </html>
